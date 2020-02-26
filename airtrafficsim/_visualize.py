@@ -10,13 +10,10 @@ LABEL_OFFSET = 50
 ICON_ROTATION_OFFSET = 60
 ICON_OFFSET = -ICON_SIZE/20
 
-#
-# print(os.path.join(MODULE_PATH, '/stuff/aircraft_icon.png'))
-# print(os.path.exists(os.path.join(MODULE_PATH, 'stuff/aircraft_icon.png')))
-# print('--'*5)
 
+ac_icon = np.uint8(plt.imread(os.path.join(MODULE_PATH, 'stuff/aircraft_icon.png'))*255.0)
 
-ac_icon = plt.imread(os.path.join(MODULE_PATH, 'stuff/aircraft_icon.png'))
+FRAME_COUNTER = 0
 
 
 def center_icon(pos):
@@ -28,7 +25,7 @@ def center_icon(pos):
     return left, right, bottom, top
 
 
-def plot_aircraft(jets, trails=True):
+def plot_aircraft(jets, trails=True, out_path=None):
     if not (type(jets) is list) and not (type(jets) is tuple):
         jets = [jets]
     fig, ax = plt.subplots()
@@ -46,4 +43,10 @@ def plot_aircraft(jets, trails=True):
         if trails:
             ax.plot(jet.track[:, 1], jet.track[:, 0], 'k--')
 
-    plt.show()
+    if out_path is None:
+        plt.show()
+    else:
+        global FRAME_COUNTER
+        fig.savefig(os.path.join(out_path, 'frame_{:05d}'.format(FRAME_COUNTER)))
+        FRAME_COUNTER += 1
+        plt.close(fig)
