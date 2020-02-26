@@ -1,0 +1,7 @@
+atc_env
+.DS_Store
+.idea/
+airtrafficsim/__pycache__/
+np.py
+output
+*.mp4
