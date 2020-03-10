@@ -5,3 +5,4 @@ airtrafficsim/__pycache__/
 np.py
 output
 *.mp4
+*.so

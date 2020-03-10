@@ -1,6 +1,6 @@
 import numpy as np
 from math import sin, cos, degrees, radians, atan2
-from . import FLIGHT_LEVEL_TO_METER, FT_PER_MIN_TO_M_PER_SEC
+from . import FLIGHT_LEVEL_TO_METER, FT_PER_MIN_TO_M_PER_SEC, c_propagator
 
 
 class Aircraft:
@@ -8,8 +8,8 @@ class Aircraft:
         self.id = ac_id
 
         # STATE
-        self.position = np.float64(start_pos) # meters
-        self.velocity = np.float64(start_vel)  # meter/sec
+        self.position = np.float32(start_pos) # meters
+        self.velocity = np.float32(start_vel)  # meter/sec
         self.climb_rate = 0
         self.turn_rate = 0  # degrees/sec
         self.heading = degrees(atan2(start_vel[1], start_vel[0]))
@@ -30,8 +30,8 @@ class Aircraft:
 
         self.track = np.vstack([self.track, self.position.copy()])
 
+    def step2(self, dt):
+        c_propagator(self.position, self.velocity, float(dt),
+                     float(self.turn_rate), float(self.climb_rate))
 
-
-
-
-
+        self.track = np.vstack([self.track, self.position.copy()])
