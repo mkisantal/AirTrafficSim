@@ -15,11 +15,12 @@ if __name__ == "__main__":
 
         # ats.plot_aircraft(jets, out_path='./output')
         if i % 25 == 0:
+
             print(i)
         for jet in jets:
-            jet.step2(1)
-            if random() < 0.10:
-                jet.heading += randint(-20, 20)
+            jet.step(1)
+            if random() < 0.1:
+                jet.turn_rate += randint(-1, 1)
 
     t1 = time.time()
     print(t1-t0)

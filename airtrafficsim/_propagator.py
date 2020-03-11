@@ -9,7 +9,7 @@ cpp_lib = ctypes.CDLL(os.path.join(module_path, 'propagator.so'))
 
 cpp_lib.propagate.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(3,)),
                               ndpointer(dtype=ctypes.c_float, shape=(3,)),
-                              ctypes.c_float, ctypes.c_float, ctypes.c_float,)
+                              ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.POINTER(ctypes.c_float))
 
 c_propagator = cpp_lib.propagate
 

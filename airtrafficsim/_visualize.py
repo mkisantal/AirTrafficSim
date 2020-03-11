@@ -2,7 +2,8 @@ from matplotlib import pyplot as plt
 from scipy import ndimage
 import numpy as np
 import os
-from . import MODULE_PATH
+from . import MODULE_PATH, BACKEND
+from math import degrees
 
 LIM = 25000
 ICON_SIZE = 1500
@@ -34,7 +35,14 @@ def plot_aircraft(jets, trails=True, out_path=None):
     ax.set_ylim([-LIM, LIM])
     ax.grid(True)
     for jet in jets:
-        rotated_ac_icon = ndimage.rotate(ac_icon, -(jet.heading + ICON_ROTATION_OFFSET))  # negative as rot dir opposite
+
+        if BACKEND == "C++":
+            hdg = degrees(jet.heading.value)
+        else:
+            hdg = degrees(jet.heading)
+
+        rotated_ac_icon = ndimage.rotate(ac_icon, -(hdg + ICON_ROTATION_OFFSET))  # negative as rot dir opposite
+
         ax.imshow(rotated_ac_icon, extent=center_icon(jet.position))
         t = ax.text(jet.position[1] + LABEL_OFFSET, jet.position[0] + LABEL_OFFSET,
                     jet.id)
