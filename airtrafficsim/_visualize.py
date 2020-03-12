@@ -39,17 +39,21 @@ def plot_aircraft(jets, trails=True, out_path=None):
         if BACKEND == "C++":
             hdg = degrees(jet.heading.value)
         else:
-            hdg = degrees(jet.heading)
+            hdg = degrees(jet.get_heading())
 
         rotated_ac_icon = ndimage.rotate(ac_icon, -(hdg + ICON_ROTATION_OFFSET))  # negative as rot dir opposite
 
-        ax.imshow(rotated_ac_icon, extent=center_icon(jet.position))
-        t = ax.text(jet.position[1] + LABEL_OFFSET, jet.position[0] + LABEL_OFFSET,
+        position = jet.get_position()
+        ax.imshow(rotated_ac_icon, extent=center_icon(position))
+        t = ax.text(position[1] + LABEL_OFFSET, position[0] + LABEL_OFFSET,
                     jet.id)
         t.set_bbox(dict(facecolor='white', alpha=0.5, edgecolor='black'))
 
         if trails:
-            ax.plot(jet.track[:, 1], jet.track[:, 0], 'k--')
+
+            track = jet.get_track()
+
+            ax.plot(track[:, 1], track[:, 0], '--')
 
     if out_path is None:
         plt.show()
