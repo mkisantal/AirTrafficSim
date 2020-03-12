@@ -8,13 +8,50 @@ class Fleet:
 
     """ Storing all Aircraft states in shared ndarrays. """
 
-    def __init__(self):
-        self.positions = np.zeros([0, 3], dtype=np.float32)
-        self.velocities = np.zeros([0, 3], dtype=np.float32)
-        # self.headings = np.zeros([0, 1], dtype=np.float32)
+    def __init__(self, aircraft_list):
 
+        self.ids = [ac.id for ac in aircraft_list]
 
-fleet = Fleet()
+        self.positions = np.stack([ac.position for ac in aircraft_list])
+        self.velocities = np.stack([ac.velocity for ac in aircraft_list])
+        self.headings = np.stack([ac.heading for ac in aircraft_list])
+        self.turn_rates = np.stack([ac.turn_rate for ac in aircraft_list])
+        self.climb_rates = np.stack([ac.climb_rate for ac in aircraft_list])
+
+        self.tracks = [self.positions.copy()]
+
+        # replacing original member variables with references to fleet values
+        # bit ugly, but works
+        # todo: what does it do to the C++ backend??
+        for i, ac in enumerate(aircraft_list):
+            ac.fleet = self
+            ac.position = self.positions[i]
+            ac.velocity = self.velocities[i]
+            ac.heading = self.headings[i]
+            ac.turn_rate = self.turn_rates[i]
+            ac.climb_rate = self.climb_rates[i]
+
+    def check(self):
+        print(self.positions.shape)
+        print(self.velocities.shape)
+        print(self.headings.shape)
+        print(self.turn_rates.shape)
+        print(self.climb_rates.shape)
+
+    def step(self, dt):
+        # if len(self.tracks) == 0:
+        #     self.tracks.append(self.positions.copy())
+
+        self.velocities[:, 2] = self.climb_rates * FT_PER_MIN_TO_M_PER_SEC
+        rotations = self.turn_rates[:, 0] * dt
+
+        self.headings += rotations
+        horizontal_speeds = np.linalg.norm(self.velocities[:, :2], axis=1)
+        self.velocities[:, 0] = np.cos(self.headings) * horizontal_speeds
+        self.velocities[:, 1] = np.sin(self.headings) * horizontal_speeds
+
+        self.positions += self.velocities * dt
+        self.tracks.append(self.positions.copy())
 
 
 class Aircraft:
@@ -23,16 +60,14 @@ class Aircraft:
 
     def __init__(self, ac_id, start_pos=np.zeros(3), start_vel=np.array([200, 0, 0])):
         self.id = ac_id
+        self.fleet = None
 
         # STATE
-        self.i = fleet.positions.shape[0]
-        fleet.positions = np.append(fleet.positions, np.expand_dims(np.float32(start_pos), 0), axis=0)
-        fleet.velocities = np.append(fleet.velocities, np.expand_dims(np.float32(start_vel), 0), axis=0)
-
-        self.position = fleet.positions[self.i]  # meters
-        self.velocity = fleet.velocities[self.i]  # meter/sec
-        self.climb_rate = 0
-        self.turn_rate = 0  # degrees/sec
+        self.position = np.float32(start_pos)  # meters
+        self.velocity = np.float32(start_vel)  # meter/sec
+        self.climb_rate = 0.0
+        # needed to edd an extra dimension, otherwise not possible to establish reference with fleet
+        self.turn_rate = np.float32([0.0])  # degrees/sec
         if BACKEND == 'C++':
             self.heading = ctypes.c_float(atan2(start_vel[1], start_vel[0]))
             self.step = self.step_cpp
@@ -57,6 +92,9 @@ class Aircraft:
         self.heading = atan2(self.velocity[1], self.velocity[0])
 
         self.track = np.vstack([self.track, self.position.copy()])
+
+        if self.fleet is not None:
+            self.fleet.tracks.append(self.fleet.positions.copy())
 
     def step_cpp(self, dt):
 

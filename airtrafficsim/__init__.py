@@ -11,6 +11,6 @@ STANDARD_TURN_RATE = radians(3)
 BACKEND = None  # None, C++, CUDA
 
 from ._propagator import c_propagator
-from ._aircraft import Aircraft
-from ._visualize import plot_aircraft
+from ._aircraft import Aircraft, Fleet
+from ._visualize import plot_aircraft, plot_fleet
 from ._utils import random_position, random_velocity, random_id

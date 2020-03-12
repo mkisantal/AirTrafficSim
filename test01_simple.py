@@ -1,26 +1,31 @@
 import airtrafficsim as ats
-from random import random, randint
+from random import random, randint, choice
 import time
+from math import radians
 
 
 if __name__ == "__main__":
 
     jets = [ats.Aircraft(ac_id=ats.random_id(),
                          start_pos=ats.random_position(),
-                         start_vel=ats.random_velocity(heading=None)) for i in range(1000)]
+                         start_vel=ats.random_velocity(heading=None)) for i in range(10)]
 
     t0 = time.time()
 
-    for i in range(1000):
+    fleet = ats.Fleet(jets)
+    fleet.check()
 
+    for i in range(10):
+        jets[0].step(1.0)
         # ats.plot_aircraft(jets, out_path='./output')
-        if i % 25 == 0:
+        ats.plot_fleet(fleet, out_path='./output')
+        # print(jets[0].position)
 
-            print(i)
-        for jet in jets:
-            jet.step(1)
-            if random() < 0.1:
-                jet.turn_rate += randint(-1, 1)
+    for i in range(20):
+        fleet.step(1.0)
+        ac = choice(jets)
+        ac.turn_rate += radians(5)
+        ats.plot_fleet(fleet, out_path='./output')
 
     t1 = time.time()
     print(t1-t0)
