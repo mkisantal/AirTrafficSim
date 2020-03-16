@@ -4,14 +4,44 @@ import numpy as np
 import os
 
 
+# Loading C++ library
 module_path = os.path.dirname(os.path.abspath(__file__))
 cpp_lib = ctypes.CDLL(os.path.join(module_path, 'propagator.so'))
 
+
+# Propagator for individual aircraft
 cpp_lib.propagate.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(3,)),
                               ndpointer(dtype=ctypes.c_float, shape=(3,)),
-                              ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.POINTER(ctypes.c_float))
+                              ctypes.c_float, ctypes.c_float, ctypes.c_float,
+                              ndpointer(dtype=ctypes.c_float, shape=(1,)))
+
+# Propagator for simultaneous fleet propagation.
+cpp_lib.propagate_fleet.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(-1, 3)),
+                                    ndpointer(dtype=ctypes.c_float, shape=(-1, 3)),
+                                    ctypes.c_float,
+                                    ndpointer(dtype=ctypes.c_float, shape=(-1,)),
+                                    ndpointer(dtype=ctypes.c_float, shape=(-1,)),
+                                    ndpointer(dtype=ctypes.c_float, shape=(-1, 1)),
+                                    ctypes.c_int)
+
 
 c_propagator = cpp_lib.propagate
+c_fleet_propagator = cpp_lib.propagate_fleet
+
+
+def get_fleet_propagator(N):
+
+    """ Shape has to be set for the function. """
+    # TODO: Check replacing shape kwarg with dim, avoiding having to set shape. At runtime N is passed anyways.
+
+    cpp_lib.propagate_fleet.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(N, 3), ),
+                                        ndpointer(dtype=ctypes.c_float, shape=(N, 3)),
+                                        ctypes.c_float,
+                                        ndpointer(dtype=ctypes.c_float, shape=(N, 1)),
+                                        ndpointer(dtype=ctypes.c_float, shape=(N, 1)),
+                                        ndpointer(dtype=ctypes.c_float, shape=(N, 1)),
+                                        ctypes.c_int)
+    return cpp_lib.propagate_fleet
 
 
 if __name__ == "__main__":

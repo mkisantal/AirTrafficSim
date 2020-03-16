@@ -37,7 +37,8 @@ def plot_aircraft(jets, trails=True, out_path=None):
     for jet in jets:
 
         if BACKEND == "C++":
-            hdg = degrees(jet.heading.value)
+            # hdg = degrees(jet.heading.value)
+            hdg = degrees(jet.heading[0])
         else:
             hdg = degrees(jet.heading)
 
