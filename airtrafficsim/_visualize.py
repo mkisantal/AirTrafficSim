@@ -27,6 +27,10 @@ def center_icon(pos):
 
 
 def plot_aircraft(jets, trails=True, out_path=None):
+    
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
+    
     if not (type(jets) is list) and not (type(jets) is tuple):
         jets = [jets]
     fig, ax = plt.subplots()
@@ -62,6 +66,10 @@ def plot_aircraft(jets, trails=True, out_path=None):
 
 
 def plot_fleet(fleet, trails=True, out_path=None):
+    
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
+    
     fig, ax = plt.subplots()
 
     ax.set_xlim([-LIM, LIM])

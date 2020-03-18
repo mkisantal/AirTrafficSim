@@ -16,6 +16,7 @@ cpp_lib.propagate.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(3,)),
                               ndpointer(dtype=ctypes.c_float, shape=(1,)))
 
 # Propagator for simultaneous fleet propagation.
+# TODO: remove shape, maybe replace with dim
 cpp_lib.propagate_fleet.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(-1, 3)),
                                     ndpointer(dtype=ctypes.c_float, shape=(-1, 3)),
                                     ctypes.c_float,
@@ -29,10 +30,24 @@ c_propagator = cpp_lib.propagate
 c_fleet_propagator = cpp_lib.propagate_fleet
 
 
+# CUDA
+cuda_lib = ctypes.CDLL(os.path.join(module_path, 'propagator_cuda.so'))
+
+cuda_lib.propagate_cuda.argtypes = (ndpointer(dtype=ctypes.c_float),
+                                     ndpointer(dtype=ctypes.c_float),
+                                     ctypes.c_float,
+                                     ndpointer(dtype=ctypes.c_float),
+                                     ndpointer(dtype=ctypes.c_float),
+                                     ndpointer(dtype=ctypes.c_float),
+                                     ctypes.c_int)
+
+
+cuda_propagator = cuda_lib.propagate_cuda
+
 def get_fleet_propagator(N):
 
     """ Shape has to be set for the function. """
-    # TODO: Check replacing shape kwarg with dim, avoiding having to set shape. At runtime N is passed anyways.
+    # TODO: Check replacing shape kwarg with dim, avoiding having to set shape. At runtime N is passed anyways.  --> will make this unnecessary
 
     cpp_lib.propagate_fleet.argtypes = (ndpointer(dtype=ctypes.c_float, shape=(N, 3), ),
                                         ndpointer(dtype=ctypes.c_float, shape=(N, 3)),

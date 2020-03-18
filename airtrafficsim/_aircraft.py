@@ -1,6 +1,6 @@
 import numpy as np
 from math import sin, cos, degrees, radians, atan2
-from . import FLIGHT_LEVEL_TO_METER, FT_PER_MIN_TO_M_PER_SEC, c_propagator, get_fleet_propagator, BACKEND, DEBUG
+from . import FLIGHT_LEVEL_TO_METER, FT_PER_MIN_TO_M_PER_SEC, c_propagator, get_fleet_propagator, BACKEND, DEBUG, cuda_propagator
 
 
 class Fleet:
@@ -29,7 +29,7 @@ class Fleet:
             ac.turn_rate = self.turn_rates[i]
             ac.climb_rate = self.climb_rates[i]
 
-        self.step = self.step_cpp if BACKEND=='C++' else self.step_python
+        self.step = self.step_cpp if BACKEND=='C++' else self.step_cuda if BACKEND=='CUDA' else self.step_python
         self._step_cpp = get_fleet_propagator(len(self.ids))
 
     def step_python(self, dt):
@@ -66,7 +66,23 @@ class Fleet:
                        int(len(self.ids)))  # We need to provide size information for cpp lib.
 
         self.tracks.append(self.positions.copy())
+        
+    def step_cuda(self, dt):
+        
+        """ CUDA propagation on GPU.  """
 
+        if DEBUG:
+            print('fleet CUDA step')
+            
+        cuda_propagator(self.positions,
+                        self.velocities,
+                        float(dt),
+                        self.turn_rates,
+                        self.climb_rates,
+                        self.headings,
+                        int(len(self.ids)))
+
+        self.tracks.append(self.positions.copy())
 
 class Aircraft:
 
